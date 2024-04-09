@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
 import Levenshtein
+from fuzzywuzzy import fuzz
 
 # connect and query dataset from PostgreSQL database
 engine = create_engine('postgresql://postgres:siravit1220@localhost:5432/postgres')
@@ -23,15 +24,15 @@ valid_list # Not null list
 list_sorted = sorted(valid_list)
 list_sorted # car manufacturer name are not in the same way (Uppercase, Lowercase, Short name, Wrong name)
 
-# use Levenshtein distance to find similar car manufacturer that may be the same name
+# use Fuzzy Matching to find similar car manufacturer that may be the same name
 def find_similar_brand(list_sorted):
     similar_brand = {}
     for i in range(len(list_sorted)):
         for j in range(i+1, len(list_sorted)):
             brand_1 = list_sorted[i]
             brand_2 = list_sorted[j]
-            distance = Levenshtein.distance(brand_1.lower(), brand_2.lower())
-            if distance <= 1: # adjustable (1 is best for car brand ><)
+            similarity_ratio = fuzz.ratio(brand_1.lower(), brand_2.lower())
+            if similarity_ratio >= 85: # adjustable 
                 if brand_1 not in similar_brand:
                     similar_brand[brand_1] = [brand_2]
                 else:
@@ -41,5 +42,4 @@ def find_similar_brand(list_sorted):
 similar_brand_list = find_similar_brand(list_sorted)
 similar_brand_list # dictionary of original brand with similar brand (threshold=1)
 manufacturer_brand_list = [key for key in similar_brand_list]
-manufacturer_brand_list # completed list of car manufacturer
-
+manufacturer_brand_list # completed list of car manufacturer !
